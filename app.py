@@ -31,7 +31,6 @@ uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "
 if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
     # Read file
-    st.header(uploaded_file.type)
 
     if uploaded_file.type == "text/csv":
         df = pd.read_csv(uploaded_file)
