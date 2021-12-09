@@ -30,9 +30,14 @@ uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "
 
 if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
-    # Read csv
+    # Read file
+    st.header(uploaded_file.type)
 
-    df = pd.read_csv(uploaded_file)
+    if uploaded_file.type == "text/csv":
+        df = pd.read_csv(uploaded_file)
+
+    else:
+        df = pd.read_excel(uploaded_file)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Color settings
