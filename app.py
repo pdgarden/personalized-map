@@ -222,3 +222,15 @@ if uploaded_file is not None:
 
     # st.set_page_config(layout="wide")
     st.plotly_chart(fig_map, use_container_width=True)
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # Download button
+
+    st.sidebar.header("Téléchargement")
+
+    st.sidebar.download_button(
+        "Télécharger la carte",
+        data=fig_map.to_html(),
+        file_name="personalized_map.html",
+        help="Fichier interactif au format html",
+    )
