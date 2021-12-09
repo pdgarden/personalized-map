@@ -26,11 +26,12 @@ MARKER_OPACITY_DEFAULT_STEP = 0.01
 
 st.set_page_config(page_title="Plot Map", layout="wide")
 
-uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?")
+uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "xlsx"])
 
 if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
     # Read csv
+
     df = pd.read_csv(uploaded_file)
 
     # -----------------------------------------------------------------------------------------------------------------
