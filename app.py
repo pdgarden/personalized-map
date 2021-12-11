@@ -13,7 +13,7 @@ AVAILABLE_MAPBOX_STYLES = [
     "stamen-toner",
     "stamen-watercolor",
 ]
-AVAILABLE_COLOR_SCALES = ["Turbo", "RdBu", "Mint", "BlackBody"]
+AVAILABLE_CONTINUOUS_COLOR_SCALES = ["Turbo", "RdBu", "Mint", "BlackBody"]
 MARKER_SINGLE_SIZE_DEFAULT_VALUE = 10
 MARKERS_MIN_SIZE, MARKERS_MAX_SIZE = 1, 50
 MARKER_SINGLE_SIZE_DEFAULT_LOW_VALUE, MARKER_SINGLE_SIZE_DEFAULT_HIGH_VALUE = 5, 15
@@ -52,14 +52,20 @@ if uploaded_file is not None:
         )
 
     else:
-        color_scale = st.sidebar.selectbox(
-            label="Quel choix de palette de couleurs?",
-            options=AVAILABLE_COLOR_SCALES,
-        )
 
         color_scale_column = st.sidebar.selectbox(
             label="Quelle colonne utiliser pour la couleur?", options=list(df.columns)
         )
+
+        color_scale_column_is_numeric = np.issubdtype(
+            df[color_scale_column].dtype, np.number
+        )
+
+        if color_scale_column_is_numeric:
+            color_scale = st.sidebar.selectbox(
+                label="Quel choix de palette de couleurs?",
+                options=AVAILABLE_CONTINUOUS_COLOR_SCALES,
+            )
 
     color_opacity = st.sidebar.slider(
         label="Opacité",
@@ -173,7 +179,12 @@ if uploaded_file is not None:
 
         # Prevent plotly to categorize boolean values which results in overriding other figure parameters
         map_parameters["color"] = color_scale_column
-        map_parameters["color_continuous_scale"] = color_scale
+
+        if color_scale_column_is_numeric:
+            map_parameters["color_continuous_scale"] = color_scale
+
+        else:
+            map_parameters["color_discrete_sequence"] = px.colors.qualitative.D3
 
     # Set zoom level not handled by default,
     # See https://stackoverflow.com/questions/63787612/plotly-automatic-zooming-for-mapbox-maps
