@@ -230,7 +230,7 @@ if uploaded_file is not None:
 
     st.sidebar.download_button(
         "Télécharger la carte",
-        data=fig_map.to_html(),
+        data=fig_map.update_layout(autosize=True, width=None, height=None).to_html(),
         file_name="personalized_map.html",
         help="Fichier interactif au format html",
     )
