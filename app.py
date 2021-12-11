@@ -172,8 +172,6 @@ if uploaded_file is not None:
     if color_strategy == "Variable":
 
         # Prevent plotly to categorize boolean values which results in overriding other figure parameters
-        df[color_scale_column] = df[color_scale_column].astype("float")
-
         map_parameters["color"] = color_scale_column
         map_parameters["color_continuous_scale"] = color_scale
 
@@ -209,17 +207,33 @@ if uploaded_file is not None:
         fig_map.update_traces(marker=dict(color=single_color))
 
     # Size
-    if size_strategy == "Unique":
-        markers_size = [single_size_marker for i in range(len(df))]
 
-    else:
-        markers_size = (df[variable_size_column] - df[variable_size_column].min()) / (
-            df[variable_size_column].max() - df[variable_size_column].min()
-        ) * (variable_size_marker[1] - variable_size_marker[0]) + variable_size_marker[
-            0
-        ]
+    for fig_scatter_object in fig_map["data"]:
 
-    fig_map.update_traces(marker=dict(size=markers_size))
+        if size_strategy == "Unique":
+
+            markers_size_values = [single_size_marker for _ in range(len(df))]
+
+        else:
+            min_col_size_value, max_col_size_value = (
+                df[variable_size_column].min(),
+                df[variable_size_column].max(),
+            )
+
+            get_marker_size = (
+                lambda col_value: (col_value - min_col_size_value)
+                / (max_col_size_value - min_col_size_value)
+                * (variable_size_marker[1] - variable_size_marker[0])
+                + variable_size_marker[0]
+            )
+
+            markers_values = fig_scatter_object["customdata"][
+                :, df.columns.get_loc(variable_size_column)
+            ]
+
+            markers_size_values = [get_marker_size(v) for v in markers_values]
+
+        fig_scatter_object["marker"]["size"] = markers_size_values
 
     # -----------------------------------------------------------------------------------------------------------------
     # Display map
