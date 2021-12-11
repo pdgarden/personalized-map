@@ -170,6 +170,10 @@ if uploaded_file is not None:
     map_parameters["opacity"] = color_opacity
 
     if color_strategy == "Variable":
+
+        # Prevent plotly to categorize boolean values which results in overriding other figure parameters
+        df[color_scale_column] = df[color_scale_column].astype("float")
+
         map_parameters["color"] = color_scale_column
         map_parameters["color_continuous_scale"] = color_scale
 
