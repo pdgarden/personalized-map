@@ -27,8 +27,14 @@ MARKERS_MIN_SIZE, MARKERS_MAX_SIZE = 1, 50
 MARKER_SINGLE_SIZE_DEFAULT_LOW_VALUE, MARKER_SINGLE_SIZE_DEFAULT_HIGH_VALUE = 5, 15
 MARKER_MIN_OPACITY = 0.0
 MARKER_MAX_OPACITY = 1.0
+MARKERS_LINE_MIN_WIDTH, MARKERS_LINE_MAX_WIDTH = 0, 5
+MARKERS_LINE_MIN_OPACITY, MARKERS_LINE_MAX_OPACITY = 0.0, 1.0
+MARKERS_LINE_OPACITY_DEFAULT_VALUE = 0.5
 MARKER_OPACITY_DEFAULT_VALUE = 0.5
 MARKER_OPACITY_DEFAULT_STEP = 0.01
+MARKERS_LINE_OPACITY_DEFAULT_STEP = 0.01
+
+MAX_DISPLAYED_DISTINCT_SCATTER_TYPES = 10
 
 EARTH_RADIUS_METERS = 6378137
 
@@ -120,6 +126,39 @@ if uploaded_file is not None:
         )
 
     # -----------------------------------------------------------------------------------------------------------------
+    # scatter line settings
+    st.sidebar.header("Contour des points")
+
+    scatter_line = st.sidebar.checkbox("Ajouter contour aux points", value=False)
+
+    if scatter_line:
+        is_specific_scatter_line_color = st.sidebar.checkbox(
+            "Contour de couleur différente des points ?", value=False
+        )
+
+        if is_specific_scatter_line_color:
+            specific_scatter_line_color = st.sidebar.color_picker(
+                "Quel couleur pour le contour des points?", value="#00FFAA"
+            )
+
+        scatter_line_width = st.sidebar.slider(
+            label="Taille du countour",
+            min_value=MARKERS_LINE_MIN_WIDTH,
+            max_value=MARKERS_LINE_MAX_WIDTH,
+            value=MARKERS_LINE_MIN_WIDTH,
+            step=1,
+            format="%g",
+        )
+
+        scatter_line_opacity = st.sidebar.slider(
+            label="Opacité du countour",
+            min_value=MARKERS_LINE_MIN_OPACITY,
+            max_value=MARKERS_LINE_MAX_OPACITY,
+            value=MARKERS_LINE_OPACITY_DEFAULT_VALUE,
+            step=MARKERS_LINE_OPACITY_DEFAULT_STEP,
+        )
+
+    # -----------------------------------------------------------------------------------------------------------------
     # Displayed columns on hover
     st.sidebar.header("Données à afficher")
 
@@ -191,6 +230,17 @@ if uploaded_file is not None:
     map_parameters["source"] = df_to_disp
 
     map_parameters["alpha"] = color_opacity
+
+    if scatter_line:
+
+        if is_specific_scatter_line_color:
+            map_parameters["line_color"] = specific_scatter_line_color
+
+        map_parameters["line_width"] = scatter_line_width
+        map_parameters["line_alpha"] = scatter_line_opacity
+
+    else:
+        map_parameters["line_alpha"] = 0
 
     if size_strategy == "Unique":
         map_parameters["size"] = single_size_marker
