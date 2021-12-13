@@ -37,16 +37,15 @@ st.set_page_config(page_title="Plot Map", layout="wide")
 
 uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "xlsx"])
 
-# if uploaded_file is not None:
-if True:
+if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
     # Read file
 
-    # if uploaded_file.type == "text/csv":
-    #     df = pd.read_csv(uploaded_file)
+    if uploaded_file.type == "text/csv":
+        df = pd.read_csv(uploaded_file)
 
-    # else:
-    #     df = pd.read_excel(uploaded_file)
+    else:
+        df = pd.read_excel(uploaded_file)
 
     df = pd.read_csv("sample_data_gps_1.csv")
 
