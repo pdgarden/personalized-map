@@ -81,6 +81,15 @@ if uploaded_file is not None:
                 label="Quel choix de palette de couleurs?",
                 options=AVAILABLE_CONTINUOUS_COLOR_SCALES,
             )
+            color_value_range = st.sidebar.slider(
+                label="Intervalle des valeurs de couleur",
+                min_value=float(df[color_scale_column].min()),
+                max_value=float(df[color_scale_column].max()),
+                value=(
+                    float(df[color_scale_column].min()),
+                    float(df[color_scale_column].max()),
+                ),
+            )
 
     color_opacity = st.sidebar.slider(
         label="Opacité",
@@ -264,6 +273,13 @@ if uploaded_file is not None:
     for col in selected_hover_columns:
         df_to_disp["_" + col] = df_to_disp[col].astype("str")
 
+    if color_strategy == "Variable" and color_scale_column_is_numeric:
+
+        processed_color_scale_column = "_" + color_scale_column
+        df_to_disp[processed_color_scale_column] = df_to_disp[color_scale_column].clip(
+            lower=color_value_range[0], upper=color_value_range[1]
+        )
+
     fig_map = figure(
         x_axis_type="mercator",
         y_axis_type="mercator",
@@ -285,16 +301,16 @@ if uploaded_file is not None:
             color_palette = [RGB(*tuple(rgb)).to_hex() for rgb in color_palette]
 
             linear_cmapper = linear_cmap(
-                field_name=color_scale_column,
+                field_name=processed_color_scale_column,
                 palette=color_palette,
-                low=df_to_disp[color_scale_column].min(),
-                high=df_to_disp[color_scale_column].max(),
+                low=df_to_disp[processed_color_scale_column].min(),
+                high=df_to_disp[processed_color_scale_column].max(),
             )
 
             color_mapper = LinearColorMapper(
                 palette=color_palette,
-                low=df_to_disp[color_scale_column].min(),
-                high=df_to_disp[color_scale_column].max(),
+                low=df_to_disp[processed_color_scale_column].min(),
+                high=df_to_disp[processed_color_scale_column].max(),
             )
 
             map_parameters["color"] = linear_cmapper
