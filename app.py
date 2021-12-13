@@ -147,7 +147,7 @@ if uploaded_file is not None:
 
         if is_specific_scatter_line_color:
             specific_scatter_line_color = st.sidebar.color_picker(
-                "Quel couleur pour le contour des points?", value="##FFFFFF"
+                "Quel couleur pour le contour des points?", value="#FFFFFF"
             )
 
         scatter_line_width = st.sidebar.slider(
