@@ -138,7 +138,7 @@ if uploaded_file is not None:
     # Scatter line settings
     st.sidebar.header("Contour des points")
 
-    scatter_line = st.sidebar.checkbox("Ajouter contour aux points", value=False)
+    scatter_line = st.sidebar.checkbox("Ajouter un contour aux points", value=False)
 
     if scatter_line:
         is_specific_scatter_line_color = st.sidebar.checkbox(
