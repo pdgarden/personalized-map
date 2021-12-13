@@ -261,6 +261,9 @@ if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
     # Create map
 
+    for col in selected_hover_columns:
+        df_to_disp["_" + col] = df_to_disp[col].astype("str")
+
     fig_map = figure(
         x_axis_type="mercator",
         y_axis_type="mercator",
@@ -314,9 +317,12 @@ if uploaded_file is not None:
 
                 fig_map.circle(**map_parameters)
 
+                if i >= MAX_DISPLAYED_DISTINCT_SCATTER_TYPES:
+                    break
+
             fig_map.legend.click_policy = "hide"
 
-    tt = [(col, f"@{col}") for col in selected_hover_columns]
+    tt = [(col, f"@_{col}") for col in selected_hover_columns]
     fig_map.add_tools(HoverTool(tooltips=tt))
 
     fig_map.xgrid.grid_line_color = None
