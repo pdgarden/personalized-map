@@ -47,8 +47,6 @@ if uploaded_file is not None:
     else:
         df = pd.read_excel(uploaded_file)
 
-    df = pd.read_csv("sample_data_gps_1.csv")
-
     # -----------------------------------------------------------------------------------------------------------------
     # Color settings
     st.sidebar.header("Couleurs")
