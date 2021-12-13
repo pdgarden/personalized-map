@@ -1,42 +1,54 @@
+from bokeh.colors import RGB
+from bokeh.embed import file_html
+from bokeh.models import HoverTool, LinearColorMapper, ColorBar, WheelZoomTool
+from bokeh.plotting import figure
+from bokeh.palettes import Set2
+from bokeh.transform import linear_cmap
+from bokeh.resources import CDN
+from bokeh import tile_providers as tp
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 
 DEFAULT_COLOR = "#CB2649"
-AVAILABLE_MAPBOX_STYLES = [
-    "open-street-map",
-    "carto-positron",
-    "carto-darkmatter",
-    "stamen- terrain",
-    "stamen-toner",
-    "stamen-watercolor",
-]
-AVAILABLE_CONTINUOUS_COLOR_SCALES = ["Turbo", "RdBu", "Mint", "BlackBody"]
+AVAILABLE_MAPBOX_STYLES = {
+    "open-street-map": tp.OSM,
+    "carto-positron": tp.CARTODBPOSITRON,
+    "stamen-terrain": tp.STAMEN_TERRAIN,
+    "stamen-toner": tp.STAMEN_TONER,
+    "wikimedia": tp.WIKIMEDIA,
+    "esri": tp.ESRI_IMAGERY,
+}
+AVAILABLE_CONTINUOUS_COLOR_SCALES = ["turbo", "coolwarm", "RdYlGn", "coolwarm_r"]
 MARKER_SINGLE_SIZE_DEFAULT_VALUE = 10
 MARKERS_MIN_SIZE, MARKERS_MAX_SIZE = 1, 50
 MARKER_SINGLE_SIZE_DEFAULT_LOW_VALUE, MARKER_SINGLE_SIZE_DEFAULT_HIGH_VALUE = 5, 15
-MAP_DEFAULT_WIDTH, MAP_DEFAULT_HEIGHT = 900, 900
-DEFAULT_ZOOM_MARGIN = 1.2
 MARKER_MIN_OPACITY = 0.0
 MARKER_MAX_OPACITY = 1.0
 MARKER_OPACITY_DEFAULT_VALUE = 0.5
 MARKER_OPACITY_DEFAULT_STEP = 0.01
 
+EARTH_RADIUS_METERS = 6378137
+
+
 st.set_page_config(page_title="Plot Map", layout="wide")
 
 uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "xlsx"])
 
-if uploaded_file is not None:
+# if uploaded_file is not None:
+if True:
     # -----------------------------------------------------------------------------------------------------------------
     # Read file
 
-    if uploaded_file.type == "text/csv":
-        df = pd.read_csv(uploaded_file)
+    # if uploaded_file.type == "text/csv":
+    #     df = pd.read_csv(uploaded_file)
 
-    else:
-        df = pd.read_excel(uploaded_file)
+    # else:
+    #     df = pd.read_excel(uploaded_file)
+
+    df = pd.read_csv("sample_data_gps_1.csv")
 
     # -----------------------------------------------------------------------------------------------------------------
     # Color settings
@@ -153,7 +165,20 @@ if uploaded_file is not None:
     st.sidebar.header("Fond carte")
 
     selected_mapbox_style = st.sidebar.selectbox(
-        label="Quelle fond de carte utiliser?", options=AVAILABLE_MAPBOX_STYLES
+        label="Quelle fond de carte utiliser?", options=AVAILABLE_MAPBOX_STYLES.keys()
+    )
+
+    # -----------------------------------------------------------------------------------------------------------------
+    # Add parameters to displayer df
+
+    df_to_disp = df.copy()
+
+    # MArcator projection
+    df_to_disp["x"] = df_to_disp[longitude_column] * (
+        EARTH_RADIUS_METERS * np.pi / 180.0
+    )
+    df_to_disp["y"] = (
+        np.log(np.tan((90 + df[latitude_column]) * np.pi / 360.0)) * EARTH_RADIUS_METERS
     )
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -161,96 +186,102 @@ if uploaded_file is not None:
 
     map_parameters = {}
 
-    map_parameters["lat"] = latitude_column
-    map_parameters["lon"] = longitude_column
+    map_parameters["x"] = "x"
+    map_parameters["y"] = "y"
 
-    map_parameters["hover_data"] = selected_hover_columns
+    map_parameters["size"] = "marker_size"
 
-    map_parameters["mapbox_style"] = selected_mapbox_style
+    map_parameters["source"] = df_to_disp
 
-    map_parameters["data_frame"] = df
+    map_parameters["alpha"] = color_opacity
 
-    map_parameters["width"] = MAP_DEFAULT_WIDTH
-    map_parameters["height"] = MAP_DEFAULT_HEIGHT
+    if size_strategy == "Unique":
+        map_parameters["size"] = single_size_marker
 
-    map_parameters["opacity"] = color_opacity
-
-    if color_strategy == "Variable":
-
-        # Prevent plotly to categorize boolean values which results in overriding other figure parameters
-        map_parameters["color"] = color_scale_column
-
-        if color_scale_column_is_numeric:
-            map_parameters["color_continuous_scale"] = color_scale
-
-        else:
-            map_parameters["color_discrete_sequence"] = px.colors.qualitative.D3
-
-    # Set zoom level not handled by default,
-    # See https://stackoverflow.com/questions/63787612/plotly-automatic-zooming-for-mapbox-maps
-    map_center = {"lat": df[latitude_column].mean(), "lon": df[longitude_column].mean()}
-
-    delta_latitude = (
-        (df[latitude_column].max() - df[latitude_column].min())
-        * DEFAULT_ZOOM_MARGIN
-        * 2
-    )
-    delta_longitude = (
-        df[longitude_column].max() - df[longitude_column].min()
-    ) * DEFAULT_ZOOM_MARGIN
-
-    latitude_zoom = 20 - np.log(delta_latitude / (360 / 2 ** 19)) / np.log(2)
-    longitude_zoom = 20 - np.log(delta_longitude / (360 / 2 ** 19)) / np.log(2)
-
-    map_parameters["center"] = map_center
-    map_parameters["zoom"] = min(latitude_zoom, longitude_zoom)
+    else:
+        df_to_disp["marker_size"] = (
+            df_to_disp[variable_size_column] - df_to_disp[variable_size_column].min()
+        ) / (
+            df_to_disp[variable_size_column].max()
+            - df_to_disp[variable_size_column].min()
+        ) * (
+            variable_size_marker[1] - variable_size_marker[0]
+        ) + variable_size_marker[
+            0
+        ]
+        map_parameters["size"] = "marker_size"
 
     # -----------------------------------------------------------------------------------------------------------------
     # Create map
 
-    fig_map = px.scatter_mapbox(**map_parameters)
+    fig_map = figure(
+        x_axis_type="mercator",
+        y_axis_type="mercator",
+        sizing_mode="stretch_both",
+    )
 
-    # -----------------------------------------------------------------------------------------------------------------
-    # More parameters update
+    tile_provider = tp.get_provider(AVAILABLE_MAPBOX_STYLES[selected_mapbox_style])
+    fig_map.add_tile(tile_provider)
 
-    # Color
     if color_strategy == "Unique":
-        fig_map.update_traces(marker=dict(color=single_color))
+        map_parameters["color"] = single_color
 
-    # Size
+        fig_map.circle(**map_parameters)
 
-    for fig_scatter_object in fig_map["data"]:
+    else:
+        if color_scale_column_is_numeric:
 
-        if size_strategy == "Unique":
+            color_palette = (255 * plt.get_cmap(color_scale)(range(256))).astype("int")
+            color_palette = [RGB(*tuple(rgb)).to_hex() for rgb in color_palette]
 
-            markers_size_values = [single_size_marker for _ in range(len(df))]
+            linear_cmapper = linear_cmap(
+                field_name=color_scale_column,
+                palette=color_palette,
+                low=df_to_disp[color_scale_column].min(),
+                high=df_to_disp[color_scale_column].max(),
+            )
+
+            color_mapper = LinearColorMapper(
+                palette=color_palette,
+                low=df_to_disp[color_scale_column].min(),
+                high=df_to_disp[color_scale_column].max(),
+            )
+
+            map_parameters["color"] = linear_cmapper
+            map_parameters["source"] = df_to_disp
+
+            fig_map.circle(**map_parameters)
+
+            fig_map.add_layout(
+                ColorBar(color_mapper=color_mapper, title=color_scale_column), "right"
+            )
 
         else:
-            min_col_size_value, max_col_size_value = (
-                df[variable_size_column].min(),
-                df[variable_size_column].max(),
-            )
+            for i, col_value in enumerate(df_to_disp[color_scale_column].unique()):
 
-            get_marker_size = (
-                lambda col_value: (col_value - min_col_size_value)
-                / (max_col_size_value - min_col_size_value)
-                * (variable_size_marker[1] - variable_size_marker[0])
-                + variable_size_marker[0]
-            )
+                map_parameters["legend_label"] = str(col_value)
+                map_parameters["color"] = Set2[8][i % 8]
+                map_parameters["source"] = df_to_disp[
+                    df_to_disp[color_scale_column] == col_value
+                ]
 
-            markers_values = fig_scatter_object["customdata"][
-                :, df.columns.get_loc(variable_size_column)
-            ]
+                fig_map.circle(**map_parameters)
 
-            markers_size_values = [get_marker_size(v) for v in markers_values]
+            fig_map.legend.click_policy = "hide"
 
-        fig_scatter_object["marker"]["size"] = markers_size_values
+    tt = [(col, f"@{col}") for col in selected_hover_columns]
+    fig_map.add_tools(HoverTool(tooltips=tt))
+
+    fig_map.xgrid.grid_line_color = None
+    fig_map.ygrid.grid_line_color = None
+
+    fig_map.toolbar.active_scroll = fig_map.select_one(WheelZoomTool)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Display map
 
     # st.set_page_config(layout="wide")
-    st.plotly_chart(fig_map, use_container_width=True)
+    st.bokeh_chart(fig_map, use_container_width=True)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Download button
@@ -259,7 +290,7 @@ if uploaded_file is not None:
 
     st.sidebar.download_button(
         "Télécharger la carte",
-        data=fig_map.update_layout(autosize=True, width=None, height=None).to_html(),
+        data=file_html(fig_map, CDN, "Map"),
         file_name="personalized_map.html",
         help="Fichier interactif au format html",
     )
