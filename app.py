@@ -186,10 +186,10 @@ if uploaded_file is not None:
     longitude_default_index = 0
 
     for index, col in enumerate(df.columns):
+
         if "lat" in col:
             latitude_default_index = index
 
-    for index, col in enumerate(df.columns):
         if ("lon" in col) or ("lng" in col):
             longitude_default_index = index
 
