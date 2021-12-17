@@ -338,7 +338,7 @@ if uploaded_file is not None:
 
             fig_map.legend.click_policy = "hide"
 
-    tt = [(col, f"@_{col}") for col in selected_hover_columns]
+    tt = [(col, "@{_" + str(col) + "}") for col in selected_hover_columns]
     fig_map.add_tools(HoverTool(tooltips=tt))
 
     fig_map.xgrid.grid_line_color = None
