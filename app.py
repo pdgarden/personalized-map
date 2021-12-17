@@ -34,7 +34,7 @@ MARKER_OPACITY_DEFAULT_VALUE = 0.5
 MARKER_OPACITY_DEFAULT_STEP = 0.01
 MARKERS_LINE_OPACITY_DEFAULT_STEP = 0.01
 
-MAX_DISPLAYED_DISTINCT_SCATTER_TYPES = 10
+MAX_DISPLAYED_DISTINCT_SCATTER_TYPES = 8
 
 EARTH_RADIUS_METERS = 6378137
 
@@ -343,7 +343,9 @@ if uploaded_file is not None:
             for i, col_value in enumerate(df_to_disp[color_scale_column].unique()):
 
                 map_parameters["legend_label"] = str(col_value)
-                map_parameters["color"] = Set2[8][i % 8]
+                map_parameters["color"] = Set2[MAX_DISPLAYED_DISTINCT_SCATTER_TYPES][
+                    i % MAX_DISPLAYED_DISTINCT_SCATTER_TYPES
+                ]
                 map_parameters["source"] = df_to_disp[
                     df_to_disp[color_scale_column] == col_value
                 ]
