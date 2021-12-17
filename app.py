@@ -38,6 +38,8 @@ MAX_DISPLAYED_DISTINCT_SCATTER_TYPES = 10
 
 EARTH_RADIUS_METERS = 6378137
 
+PROCESSED_SIZE_COLUMN_NAME = "_size_column"
+
 
 st.set_page_config(page_title="Plot Map", layout="wide")
 
@@ -132,6 +134,16 @@ if uploaded_file is not None:
 
         variable_size_column = st.sidebar.selectbox(
             label="Quelle colonne utiliser pour la taille?", options=list(df.columns)
+        )
+
+        variable_size_range = st.sidebar.slider(
+            label="Intervalle des valeurs de tailles",
+            min_value=float(df[variable_size_column].min()),
+            max_value=float(df[variable_size_column].max()),
+            value=(
+                float(df[variable_size_column].min()),
+                float(df[variable_size_column].max()),
+            ),
         )
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -234,7 +246,7 @@ if uploaded_file is not None:
     map_parameters["x"] = "x"
     map_parameters["y"] = "y"
 
-    map_parameters["size"] = "marker_size"
+    map_parameters["size"] = PROCESSED_SIZE_COLUMN_NAME
 
     map_parameters["source"] = df_to_disp
 
@@ -252,20 +264,25 @@ if uploaded_file is not None:
         map_parameters["line_alpha"] = 0
 
     if size_strategy == "Unique":
-        map_parameters["size"] = single_size_marker
+        df_to_disp[PROCESSED_SIZE_COLUMN_NAME] = single_size_marker
 
     else:
-        df_to_disp["marker_size"] = (
-            df_to_disp[variable_size_column] - df_to_disp[variable_size_column].min()
+
+        df_to_disp[PROCESSED_SIZE_COLUMN_NAME] = df_to_disp[variable_size_column].clip(
+            lower=variable_size_range[0], upper=variable_size_range[1]
+        )
+
+        df_to_disp[PROCESSED_SIZE_COLUMN_NAME] = (
+            df_to_disp[PROCESSED_SIZE_COLUMN_NAME]
+            - df_to_disp[PROCESSED_SIZE_COLUMN_NAME].min()
         ) / (
-            df_to_disp[variable_size_column].max()
-            - df_to_disp[variable_size_column].min()
+            df_to_disp[PROCESSED_SIZE_COLUMN_NAME].max()
+            - df_to_disp[PROCESSED_SIZE_COLUMN_NAME].min()
         ) * (
             variable_size_marker[1] - variable_size_marker[0]
         ) + variable_size_marker[
             0
         ]
-        map_parameters["size"] = "marker_size"
 
     # -----------------------------------------------------------------------------------------------------------------
     # Create map
