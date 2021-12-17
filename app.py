@@ -193,7 +193,7 @@ if uploaded_file is not None:
         if ("lon" in col) or ("lng" in col):
             longitude_default_index = index
 
-    # Ask laittude and longitude columns values in case the default method doesn't work
+    # Ask latitude and longitude columns values in case the default method doesn't work
     latitude_column = st.sidebar.selectbox(
         label="Quelle colonne utiliser pour la latitude?",
         options=list(df.columns),
@@ -214,11 +214,11 @@ if uploaded_file is not None:
     )
 
     # -----------------------------------------------------------------------------------------------------------------
-    # Add parameters to displayer df
+    # Add parameters to displayed df
 
     df_to_disp = df.copy()
 
-    # MArcator projection
+    # Mercator projection
     df_to_disp["x"] = df_to_disp[longitude_column] * (
         EARTH_RADIUS_METERS * np.pi / 180.0
     )
