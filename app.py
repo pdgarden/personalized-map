@@ -1,3 +1,5 @@
+import os
+
 from bokeh.colors import RGB
 from bokeh.embed import file_html
 from bokeh.models import HoverTool, LinearColorMapper, ColorBar, WheelZoomTool
@@ -40,10 +42,18 @@ EARTH_RADIUS_METERS = 6378137
 
 PROCESSED_SIZE_COLUMN_NAME = "_size_column"
 
+SAMPLE_DF = pd.read_csv(os.path.join("data", "cities_dataset.csv"))
+
 
 st.set_page_config(page_title="Plot Map", layout="wide")
 
 uploaded_file = st.sidebar.file_uploader("Quel fichier traiter?", type=["csv", "xlsx"])
+
+download_sample_file = st.sidebar.download_button(
+    label="Télécharger fichier source d'exemple",
+    data=SAMPLE_DF.to_csv(index=False).encode("utf-8"),
+    file_name="sample_cities_dataset.csv",
+)
 
 if uploaded_file is not None:
     # -----------------------------------------------------------------------------------------------------------------
