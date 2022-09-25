@@ -23,7 +23,18 @@ AVAILABLE_MAPBOX_STYLES = {
     "wikimedia": tp.WIKIMEDIA,
     "esri": tp.ESRI_IMAGERY,
 }
-AVAILABLE_CONTINUOUS_COLOR_SCALES = ["jet", "coolwarm", "RdYlGn", "jet_r", "coolwarm_r"]
+AVAILABLE_CONTINUOUS_COLOR_SCALES = [
+    "RdYlGn_r",
+    "jet",
+    "coolwarm",
+    "RdYlGn",
+    "jet_r",
+    "coolwarm_r",
+    "Oranges",
+    "Reds",
+    "Greens",
+    "GnBu",
+]
 MARKER_SINGLE_SIZE_DEFAULT_VALUE = 10
 MARKERS_MIN_SIZE, MARKERS_MAX_SIZE = 1, 50
 MARKER_SINGLE_SIZE_DEFAULT_LOW_VALUE, MARKER_SINGLE_SIZE_DEFAULT_HIGH_VALUE = 5, 15
